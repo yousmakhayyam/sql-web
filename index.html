@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Message Board</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Leave a Message</h1>
+    <form action="/submit" method="POST" class="message-form">
+      <input type="text" name="name" placeholder="Your Name" required />
+      <textarea name="message" placeholder="Your Message" required></textarea>
+      <button type="submit">Send</button>
+    </form>
+
+    <h2>All Messages</h2>
+    <ul class="message-list">
+      <% messages.forEach(msg => { %>
+        <li>
+          <strong><%= msg.Name %></strong>: <%= msg.Message %>
+          <span>(<%= new Date(msg.CreatedAt).toLocaleString() %>)</span>
+        </li>
+      <% }) %>
+    </ul>
+  </div>
+</body>
+</html>

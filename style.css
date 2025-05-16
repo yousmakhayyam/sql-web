@@ -1,0 +1,53 @@
+body {
+    font-family: "Segoe UI", sans-serif;
+    background: #f9f9f9;
+    padding: 20px;
+  }
+  .container {
+    max-width: 600px;
+    margin: auto;
+    background: #fff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+  h1, h2 {
+    text-align: center;
+    color: #333;
+  }
+  .message-form {
+    display: flex;
+    flex-direction: column;
+  }
+  .message-form input,
+  .message-form textarea {
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+  .message-form button {
+    background: #0078d4;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .message-form button:hover {
+    background: #005fa3;
+  }
+  .message-list {
+    list-style: none;
+    padding: 0;
+  }
+  .message-list li {
+    margin-bottom: 12px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 6px;
+  }
+  .message-list span {
+    font-size: 0.9em;
+    color: #888;
+  }
+  
