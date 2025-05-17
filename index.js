@@ -1,49 +1,68 @@
 require('dotenv').config();
-const express = require("express");
-const bodyParser = require("body-parser");
-const sql = require("mssql");
-const path = require("path");
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("messageForm");
+  const nameInput = document.getElementById("name");
+  const messageInput = document.getElementById("message");
+  const messagesList = document.getElementById("messagesList");
 
-const app = express();
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static("public"));
-app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "html");
-app.engine("html", require("ejs").renderFile);
+  // Toast container
+  const createToast = (message, type = "success") => {
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    toast.innerText = message;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.remove();
+    }, 3000);
+  };
 
-const config = {
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  server: process.env.DB_SERVER,
-  database: process.env.DB_NAME,
-  options: {
-    encrypt: true,
-    trustServerCertificate: true,
-  }
-};
+  // Load all messages on page load
+  const loadMessages = async () => {
+    try {
+      const res = await fetch("/messages");
+      const messages = await res.json();
+      messagesList.innerHTML = "";
+      messages.forEach((msg) => {
+        const li = document.createElement("li");
+        li.innerHTML = `<strong>${msg.name}</strong>: ${msg.message} <br/><small>(${new Date(msg.timestamp).toLocaleString()})</small>`;
+        li.classList.add("fade-in");
+        messagesList.appendChild(li);
+      });
+    } catch (err) {
+      createToast("Failed to load messages", "error");
+    }
+  };
 
-app.get("/", async (req, res) => {
-  try {
-    await sql.connect(config);
-    const result = await sql.query("SELECT * FROM Messages ORDER BY CreatedAt DESC");
-    res.render("index", { messages: result.recordset });
-  } catch (err) {
-    console.error("DB Error:", err);
-    res.send("Error loading page");
-  }
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const name = nameInput.value.trim();
+    const message = messageInput.value.trim();
+
+    if (!name || !message) {
+      createToast("Both fields are required!", "error");
+      return;
+    }
+
+    try {
+      const res = await fetch("/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, message }),
+      });
+
+      if (res.ok) {
+        nameInput.value = "";
+        messageInput.value = "";
+        createToast("Message sent successfully!");
+        loadMessages();
+      } else {
+        createToast("Failed to send message", "error");
+      }
+    } catch (err) {
+      createToast("Something went wrong", "error");
+    }
+  });
+
+  loadMessages();
 });
-
-app.post("/submit", async (req, res) => {
-  const { name, message } = req.body;
-  try {
-    await sql.connect(config);
-    await sql.query`INSERT INTO Messages (Name, Message) VALUES (${name}, ${message})`;
-    res.redirect("/");
-  } catch (err) {
-    console.error("Submit Error:", err);
-    res.send("Error submitting message");
-  }
-});
-
-const port = process.env.PORT || 3000;
-app.listen(port, () => console.log(`Running on port ${port}`));

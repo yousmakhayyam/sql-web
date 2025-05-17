@@ -1,53 +1,159 @@
+/* Base Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
 body {
-    font-family: "Segoe UI", sans-serif;
-    background: #f9f9f9;
+  background: #f9f9f9;
+  padding: 40px;
+  color: #333;
+}
+
+/* Container */
+.container {
+  max-width: 700px;
+  margin: 0 auto;
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Heading */
+h1 {
+  text-align: center;
+  color: #4e73df;
+  margin-bottom: 25px;
+}
+
+/* Form Styles */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+input[type="text"],
+textarea {
+  padding: 12px 14px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+input[type="text"]:focus,
+textarea:focus {
+  border-color: #4e73df;
+  outline: none;
+  box-shadow: 0 0 5px rgba(78, 115, 223, 0.3);
+}
+
+button {
+  background-color: #4e73df;
+  color: white;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #375ac4;
+}
+
+/* Messages Section */
+#messagesList {
+  list-style: none;
+  padding: 0;
+}
+
+#messagesList li {
+  background: #f1f1f1;
+  padding: 15px;
+  margin-bottom: 10px;
+  border-left: 5px solid #4e73df;
+  border-radius: 6px;
+  animation: fadeIn 0.3s ease;
+}
+
+#messagesList li strong {
+  color: #2d2d2d;
+}
+
+#messagesList li small {
+  color: #888;
+  font-size: 12px;
+}
+
+/* Toast Styles */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  padding: 15px 25px;
+  border-radius: 5px;
+  color: white;
+  font-size: 16px;
+  animation: slideUp 0.4s ease, fadeOut 0.5s ease 2.5s forwards;
+  z-index: 9999;
+}
+
+.toast.success {
+  background-color: #28a745;
+}
+
+.toast.error {
+  background-color: #dc3545;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+/* Fade-in Animation */
+.fade-in {
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Responsive */
+@media screen and (max-width: 600px) {
+  body {
     padding: 20px;
   }
+
   .container {
-    max-width: 600px;
-    margin: auto;
-    background: #fff;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    padding: 20px;
   }
-  h1, h2 {
-    text-align: center;
-    color: #333;
-  }
-  .message-form {
-    display: flex;
-    flex-direction: column;
-  }
-  .message-form input,
-  .message-form textarea {
-    padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-  }
-  .message-form button {
-    background: #0078d4;
-    color: white;
-    padding: 10px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  .message-form button:hover {
-    background: #005fa3;
-  }
-  .message-list {
-    list-style: none;
-    padding: 0;
-  }
-  .message-list li {
-    margin-bottom: 12px;
-    border-bottom: 1px solid #ddd;
-    padding-bottom: 6px;
-  }
-  .message-list span {
-    font-size: 0.9em;
-    color: #888;
-  }
-  
+}
