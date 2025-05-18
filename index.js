@@ -1,11 +1,9 @@
-require('dotenv').config();
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("messageForm");
   const nameInput = document.getElementById("name");
   const messageInput = document.getElementById("message");
   const messagesList = document.getElementById("messagesList");
 
-  // Toast container
   const createToast = (message, type = "success") => {
     const toast = document.createElement("div");
     toast.className = `toast ${type}`;
@@ -16,7 +14,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 3000);
   };
 
-  // Load all messages on page load
   const loadMessages = async () => {
     try {
       const res = await fetch("/messages");
