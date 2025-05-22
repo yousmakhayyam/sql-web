@@ -1,5 +1,6 @@
 param location string = resourceGroup().location
 param sqlAdmin string
+@secure()
 param sqlPassword string
 param webAppName string
 param appServicePlanName string
@@ -44,7 +45,9 @@ resource sqlServer 'Microsoft.Sql/servers@2022-02-01-preview' = {
 }
 
 resource sqlDb 'Microsoft.Sql/servers/databases@2022-02-01-preview' = {
-  name: '${sqlServer.name}/${sqlDbName}'
+  name: sqlDbName
+  parent: sqlServer
+  location: location
   properties: {
     collation: 'SQL_Latin1_General_CP1_CI_AS'
     maxSizeBytes: 2147483648
