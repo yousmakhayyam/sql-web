@@ -1,24 +1,52 @@
-name: Deploy to Azure Web App
+name: Deploy Web App & SQL via Bicep
 
 on:
   push:
     branches:
-      - main  # or your branch name
+      - main
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Log in to Azure
+    - name: Azure Login
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Deploy to Azure Web App
+    - name: Deploy Infrastructure using Bicep
+      uses: azure/cli@v1
+      with:
+        inlineScript: |
+          az deployment group create \
+            --resource-group yousma-rg \
+            --template-file infra/main.bicep \
+            --parameters @infra/parameters.json
+
+    - name: Get SQL Connection String
+      id: get-conn
+      run: |
+        conn=$(az sql db show-connection-string --name yousmadb \
+          --server yousmaserver \
+          --client ado.net \
+          --auth-type SqlPassword \
+          --output tsv | sed "s/<username>/sqladmin/;s/<password>/P@ssword123/")
+        echo "::add-mask::$conn"
+        echo "DB_CONN_STRING=$conn" >> $GITHUB_ENV
+
+    - name: Set Connection String in App Settings
+      run: |
+        az webapp config connection-string set \
+          --resource-group yousma-rg \
+          --name yousma-web \
+          --settings DefaultConnection="${{ env.DB_CONN_STRING }}" \
+          --connection-string-type SQLAzure
+
+    - name: Deploy App to Azure Web App
       uses: azure/webapps-deploy@v2
       with:
         app-name: yousma-web
