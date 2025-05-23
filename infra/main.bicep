@@ -52,6 +52,6 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
   }
 }
 
-var sqlDomain = environment().suffixes.sqlServer
+var sqlDomain = environment().suffixes.sqlServerHostname
 
 output sqlConnStr string = 'Server=tcp:${sqlServerName}.${sqlDomain},1433;Initial Catalog=${databaseName};Persist Security Info=False;User ID=${sqlAdmin};Password=REDACTED;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
