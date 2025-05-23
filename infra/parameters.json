@@ -7,7 +7,8 @@
       "sqlAdmin": { "value": "sqladmin" },
       "sqlPassword": { "value": "P@ssword123" },
       "webAppName": { "value": "yousma-web" },
-      "appServicePlanName": { "value": "yousma-plan" }
+      "appServicePlanName": { "value": "yousma-plan" },
+      "sqlServerName": { "value": "yousma-sqlserver" }
     }
   }
   
