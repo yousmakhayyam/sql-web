@@ -1,25 +1,24 @@
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <title>Yousma Feedback</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="/style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 </head>
 <body>
   <div class="container">
     <h1>💬 Leave Your Message</h1>
-    <form id="messageForm">
-      <input type="text" id="name" placeholder="👤 Your Name" required />
-      <textarea id="message" placeholder="✍️ Your Message" required></textarea>
+    <form id="messageForm" autocomplete="off">
+      <input type="text" id="name" placeholder="👤 Your Name" required maxlength="50" />
+      <textarea id="message" placeholder="✍️ Your Message" required maxlength="300"></textarea>
       <button type="submit">📩 Send</button>
     </form>
 
     <h2>📜 All Messages</h2>
-    <ul id="messagesList"></ul>
+    <ul id="messagesList" aria-live="polite"></ul>
   </div>
 
-  <script src="index.js"></script>
+  <script src="/index.js"></script>
 </body>
 </html>

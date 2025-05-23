@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
       messagesList.innerHTML = "";
       messages.forEach((msg) => {
         const li = document.createElement("li");
-        li.innerHTML = `<strong>${msg.name}</strong>: ${msg.message} <br/><small>(${new Date(msg.timestamp).toLocaleString()})</small>`;
+        li.innerHTML = `<strong>${escapeHtml(msg.name)}</strong>: ${escapeHtml(msg.message)} <br/><small>(${new Date(msg.timestamp).toLocaleString()})</small>`;
         li.classList.add("fade-in");
         messagesList.appendChild(li);
       });
@@ -54,7 +54,8 @@ document.addEventListener("DOMContentLoaded", () => {
         createToast("Message sent successfully!");
         loadMessages();
       } else {
-        createToast("Failed to send message", "error");
+        const errData = await res.json();
+        createToast(errData.error || "Failed to send message", "error");
       }
     } catch (err) {
       createToast("Something went wrong", "error");
@@ -62,4 +63,14 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   loadMessages();
+
+  // Escape to prevent XSS
+  function escapeHtml(text) {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
 });
