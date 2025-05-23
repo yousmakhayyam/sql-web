@@ -17,9 +17,8 @@ resource sqlServer 'Microsoft.Sql/servers@2022-05-01-preview' = {
 }
 
 resource sqlDatabase 'Microsoft.Sql/servers/databases@2022-05-01-preview' = {
-  name: databaseName
+  name: '${sqlServer.name}/${databaseName}'
   parent: sqlServer
-  location: location
   properties: {
     collation: 'SQL_Latin1_General_CP1_CI_AS'
     maxSizeBytes: 2147483648
@@ -52,4 +51,4 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
   }
 }
 
-output connectionString string = 'Server=tcp:${sqlServer.name}.database.windows.net,1433;Initial Catalog=${databaseName};Persist Security Info=False;User ID=${sqlAdmin};Password=${sqlPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
+output connectionStringTemplate string = 'Server=tcp:${sqlServer.name}.${environment().suffixes.sqlServerHostname},1433;Initial Catalog=${databaseName};User ID=${sqlAdmin};[PASSWORD];Encrypt=True;'
