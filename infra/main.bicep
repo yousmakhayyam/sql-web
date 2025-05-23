@@ -7,7 +7,6 @@ param databaseName string
 param webAppName string
 param sku string = 'B1'
 
-// Create SQL Server
 resource sqlServer 'Microsoft.Sql/servers@2022-05-01-preview' = {
   name: sqlServerName
   location: location
@@ -15,19 +14,17 @@ resource sqlServer 'Microsoft.Sql/servers@2022-05-01-preview' = {
     administratorLogin: sqlAdmin
     administratorLoginPassword: sqlPassword
   }
-  sku: {
-    name: 'GP_Gen5_2'
-    tier: 'GeneralPurpose'
-    capacity: 2
-    family: 'Gen5'
-  }
 }
 
-// Create SQL Database (fix: use parent, remove `/` in name)
 resource sqlDatabase 'Microsoft.Sql/servers/databases@2022-05-01-preview' = {
-  name: databaseName
-  parent: sqlServer
+  name: '${sqlServerName}/${databaseName}'
   location: location
+  parent: sqlServer
+  sku: {
+    name: 'Basic'
+    tier: 'Basic'
+    capacity: 5
+  }
   properties: {
     collation: 'SQL_Latin1_General_CP1_CI_AS'
     maxSizeBytes: 2147483648
@@ -35,7 +32,6 @@ resource sqlDatabase 'Microsoft.Sql/servers/databases@2022-05-01-preview' = {
   }
 }
 
-// App Service Plan (Linux)
 resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
   name: '${webAppName}-plan'
   location: location
@@ -49,7 +45,6 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
   }
 }
 
-// Web App + DB connection string
 resource webApp 'Microsoft.Web/sites@2022-03-01' = {
   name: webAppName
   location: location
@@ -61,13 +56,11 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
       appSettings: [
         {
           name: 'DB_CONNECTION'
-          value: 'Server=tcp:${sqlServerName}.${environment().suffixes.sqlServerHostName},1433;Initial Catalog=${databaseName};Persist Security Info=False;User ID=${sqlAdmin};Password=${sqlPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
+          value: 'Server=tcp:${sqlServerName}.${environment().suffixes.sqlServerHostname},1433;Initial Catalog=${databaseName};Persist Security Info=False;User ID=${sqlAdmin};Password=${sqlPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
         }
       ]
     }
   }
 }
 
-// ⚠ Removed secret output — Do NOT expose passwords in outputs
-// If you need output (non-sensitive), this is safe:
-output dbHost string = '${sqlServerName}.${environment().suffixes.sqlServerHostName}'
+output sqlConnStr string = 'Server=tcp:${sqlServerName}.${environment().suffixes.sqlServerHostname},1433;Initial Catalog=${databaseName};Persist Security Info=False;User ID=${sqlAdmin};Password=${sqlPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
