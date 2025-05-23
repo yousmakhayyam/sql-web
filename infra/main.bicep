@@ -17,9 +17,9 @@ resource sqlServer 'Microsoft.Sql/servers@2022-05-01-preview' = {
 }
 
 resource sqlDatabase 'Microsoft.Sql/servers/databases@2022-05-01-preview' = {
-  name: '${sqlServerName}/${databaseName}'
+  name: databaseName  // only database name here, no slashes
+  parent: sqlServer   // specify parent resource
   location: location
-  parent: sqlServer
   sku: {
     name: 'Basic'
     tier: 'Basic'
@@ -63,4 +63,5 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
   }
 }
 
-output sqlConnStr string = 'Server=tcp:${sqlServerName}.${environment().suffixes.sqlServerHostname},1433;Initial Catalog=${databaseName};Persist Security Info=False;User ID=${sqlAdmin};Password=${sqlPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
+// Output connection string WITHOUT password to avoid secret leak
+output sqlConnStrWithoutPassword string = 'Server=tcp:${sqlServerName}.${environment().suffixes.sqlServerHostname},1433;Initial Catalog=${databaseName};Persist Security Info=False;User ID=${sqlAdmin};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
