@@ -15,46 +15,46 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: 🧾 Checkout code
+        uses: actions/checkout@v3
 
-    - name: Login to Azure
-      uses: azure/login@v1
-      with:
-        creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: 🔐 Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Deploy Bicep Template
-      id: deploy_bicep
-      run: |
-        export DEPLOY_NAME="node-deploy-$(date +%s)"
-        echo "DEPLOY_NAME=$DEPLOY_NAME" >> $GITHUB_ENV
+      - name: 🏗️ Deploy infrastructure via Bicep
+        run: |
+          DEPLOY_NAME="node-deploy-$(date +%s)"
+          echo "DEPLOY_NAME=$DEPLOY_NAME" >> $GITHUB_ENV
 
-        az deployment group create \
-          --resource-group $AZURE_RG \
-          --name $DEPLOY_NAME \
-          --template-file $BICEP_FILE \
-          --parameters \
-              sqlServerName=${{ secrets.DB_SERVER }} \
-              sqlAdmin=${{ secrets.DB_USER }} \
-              sqlPassword=${{ secrets.DB_PASSWORD }} \
-              databaseName=${{ secrets.DB_DATABASE }} \
-              webAppName=${{ secrets.AZURE_WEBAPP_NAME }}
+          az deployment group create \
+            --resource-group "${{ env.AZURE_RG }}" \
+            --name "$DEPLOY_NAME" \
+            --template-file "${{ env.BICEP_FILE }}" \
+            --parameters \
+              sqlServerName="${{ secrets.DB_SERVER }}" \
+              sqlAdmin="${{ secrets.DB_USER }}" \
+              sqlPassword="${{ secrets.DB_PASSWORD }}" \
+              databaseName="${{ secrets.DB_DATABASE }}" \
+              webAppName="${{ secrets.AZURE_WEBAPP_NAME }}"
 
-    - name: Generate SQL connection string
-      id: generate_conn
-      run: |
-        conn_string="Server=tcp:${{ secrets.DB_SERVER }}.database.windows.net,1433;Initial Catalog=${{ secrets.DB_DATABASE }};Persist Security Info=False;User ID=${{ secrets.DB_USER }};Password=${{ secrets.DB_PASSWORD }};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
-        echo "CONN_STRING=$conn_string" >> $GITHUB_ENV
+      - name: 🔧 Generate SQL connection string
+        run: |
+          echo "CONN_STRING=Server=tcp:${{ secrets.DB_SERVER }}.database.windows.net,1433;Initial Catalog=${{ secrets.DB_DATABASE }};Persist Security Info=False;User ID=${{ secrets.DB_USER }};Password=${{ secrets.DB_PASSWORD }};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;" >> $GITHUB_ENV
 
-    - name: Set app settings with SQL connection string
-      run: |
-        az webapp config appsettings set \
-          --resource-group $AZURE_RG \
-          --name ${{ secrets.AZURE_WEBAPP_NAME }} \
-          --settings DB_CONNECTION="$CONN_STRING"
+      - name: ⚙️ Set app settings (DB_CONNECTION)
+        run: |
+          az webapp config appsettings set \
+            --resource-group "${{ env.AZURE_RG }}" \
+            --name "${{ secrets.AZURE_WEBAPP_NAME }}" \
+            --settings DB_CONNECTION="${{ env.CONN_STRING }}"
 
-    - name: Deploy Web App code
-      uses: azure/webapps-deploy@v2
-      with:
-        app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
-        package: .
+      - name: 📦 Install Node.js dependencies
+        run: npm install
+
+      - name: 🚀 Deploy Web App code to Azure
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          package: .
