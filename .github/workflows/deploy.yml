@@ -39,16 +39,7 @@ jobs:
               databaseName="${{ secrets.DB_DATABASE }}" \
               webAppName="${{ secrets.AZURE_WEBAPP_NAME }}"
 
-      - name: 🔧 Generate SQL connection string
-        run: |
-          echo "CONN_STRING=Server=tcp:${{ secrets.DB_SERVER }}.database.windows.net,1433;Initial Catalog=${{ secrets.DB_DATABASE }};Persist Security Info=False;User ID=${{ secrets.DB_USER }};Password=${{ secrets.DB_PASSWORD }};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;" >> $GITHUB_ENV
-
-      - name: ⚙️ Set app settings (DB_CONNECTION)
-        run: |
-          az webapp config appsettings set \
-            --resource-group "${{ env.AZURE_RG }}" \
-            --name "${{ secrets.AZURE_WEBAPP_NAME }}" \
-            --settings DB_CONNECTION="${{ env.CONN_STRING }}"
+      #  Removed separate SQL connection string generation — it's already injected via Bicep appSettings
 
       - name: 📦 Install Node.js dependencies
         run: npm install
