@@ -2,13 +2,13 @@
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
-      "location": { "value": "East US" },
-      "databaseName": { "value": "yousmadb" },
+      "location": { "value": "eastus" },
+      "sqlServerName": { "value": "yousmaserver" },
       "sqlAdmin": { "value": "sqladmin" },
       "sqlPassword": { "value": "P@ssword123" },
+      "databaseName": { "value": "yousmadb" },
       "webAppName": { "value": "yousma-web" },
-      "appServicePlanName": { "value": "yousma-plan" },
-      "sqlServerName": { "value": "yousma-sqlserver" }
+      "sku": { "value": "B1" }
     }
   }
   
