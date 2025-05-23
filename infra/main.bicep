@@ -17,8 +17,8 @@ resource sqlServer 'Microsoft.Sql/servers@2022-05-01-preview' = {
 }
 
 resource sqlDatabase 'Microsoft.Sql/servers/databases@2022-05-01-preview' = {
-  name: databaseName  // only database name here, no slashes
-  parent: sqlServer   // specify parent resource
+  name: databaseName
+  parent: sqlServer
   location: location
   sku: {
     name: 'Basic'
@@ -55,13 +55,29 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
       linuxFxVersion: 'NODE|18-lts'
       appSettings: [
         {
-          name: 'DB_CONNECTION'
-          value: 'Server=tcp:${sqlServerName}.${environment().suffixes.sqlServerHostname},1433;Initial Catalog=${databaseName};Persist Security Info=False;User ID=${sqlAdmin};Password=${sqlPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
+          name: 'DB_USER'
+          value: sqlAdmin
+        }
+        {
+          name: 'DB_PASSWORD'
+          value: sqlPassword
+        }
+        {
+          name: 'DB_SERVER'
+          value: '${sqlServerName}.${environment().suffixes.sqlServerHostname}'
+        }
+        {
+          name: 'DB_DATABASE'
+          value: databaseName
+        }
+        {
+          name: 'WEBSITE_NODE_DEFAULT_VERSION'
+          value: '18-lts'
         }
       ]
     }
   }
 }
 
-// Output connection string WITHOUT password to avoid secret leak
+// Output connection string WITHOUT password for reference/debugging (optional)
 output sqlConnStrWithoutPassword string = 'Server=tcp:${sqlServerName}.${environment().suffixes.sqlServerHostname},1433;Initial Catalog=${databaseName};Persist Security Info=False;User ID=${sqlAdmin};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
