@@ -1,41 +1,13 @@
 param location string = resourceGroup().location
+param sqlServerName string
 param sqlAdmin string
 @secure()
 param sqlPassword string
+param databaseName string
 param webAppName string
-param appServicePlanName string
-param sqlServerName string
-param sqlDbName string
+param sku string = 'B1'
 
-resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
-  name: appServicePlanName
-  location: location
-  sku: {
-    name: 'B1'
-    tier: 'Basic'
-  }
-  properties: {
-    reserved: false
-  }
-}
-
-resource webApp 'Microsoft.Web/sites@2022-03-01' = {
-  name: webAppName
-  location: location
-  properties: {
-    serverFarmId: appServicePlan.id
-    siteConfig: {
-      appSettings: [
-        {
-          name: 'WEBSITE_NODE_DEFAULT_VERSION'
-          value: '18.17.1'
-        }
-      ]
-    }
-  }
-}
-
-resource sqlServer 'Microsoft.Sql/servers@2022-02-01-preview' = {
+resource sqlServer 'Microsoft.Sql/servers@2022-05-01-preview' = {
   name: sqlServerName
   location: location
   properties: {
@@ -44,14 +16,41 @@ resource sqlServer 'Microsoft.Sql/servers@2022-02-01-preview' = {
   }
 }
 
-resource sqlDb 'Microsoft.Sql/servers/databases@2022-02-01-preview' = {
-  name: sqlDbName
-  parent: sqlServer
-  location: location
+resource sqlDatabase 'Microsoft.Sql/servers/databases@2022-05-01-preview' = {
+  name: '${sqlServer.name}/${databaseName}'
   properties: {
     collation: 'SQL_Latin1_General_CP1_CI_AS'
     maxSizeBytes: 2147483648
     sampleName: 'AdventureWorksLT'
-    zoneRedundant: false
   }
 }
+
+resource appServicePlan 'Microsoft.Web/serverfarms@2022-03-01' = {
+  name: '${webAppName}-plan'
+  location: location
+  sku: {
+    name: sku
+    tier: 'Basic'
+  }
+  kind: 'linux'
+  properties: {
+    reserved: true
+  }
+}
+
+resource webApp 'Microsoft.Web/sites@2022-03-01' = {
+  name: webAppName
+  location: location
+  kind: 'app,linux'
+  properties: {
+    serverFarmId: appServicePlan.id
+    siteConfig: {
+      linuxFxVersion: 'NODE|18-lts'
+    }
+  }
+  dependsOn: [
+    appServicePlan
+  ]
+}
+
+output connectionString string = 'Server=tcp:${sqlServer.name}.database.windows.net,1433;Initial Catalog=${databaseName};Persist Security Info=False;User ID=${sqlAdmin};Password=${sqlPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'

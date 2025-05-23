@@ -1,9 +1,15 @@
-name: Deploy Web App & SQL via Bicep
+name: Deploy Node App with Azure SQL
 
 on:
   push:
     branches:
       - main
+
+env:
+  AZURE_RG: yousma-rg
+  LOCATION: eastus
+  BICEP_FILE: infra/main.bicep
+  PARAMS_FILE: infra/parameters.json
 
 jobs:
   deploy:
@@ -11,44 +17,38 @@ jobs:
 
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
 
-    - name: Azure Login
+    - name: Login to Azure
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Deploy Infrastructure using Bicep
-      uses: azure/cli@v1
+    - name: Deploy Bicep Template
+      uses: azure/arm-deploy@v1
       with:
-        inlineScript: |
-          az deployment group create \
-            --resource-group yousma-rg \
-            --template-file infra/main.bicep \
-            --parameters @infra/parameters.json
+        scope: resourcegroup
+        resourceGroupName: ${{ env.AZURE_RG }}
+        template: ${{ env.BICEP_FILE }}
+        parameters: ${{ env.PARAMS_FILE }}
 
-    - name: Get SQL Connection String
-      id: get-conn
+    - name: Get SQL connection string from Bicep output
+      id: get_output
       run: |
-        conn=$(az sql db show-connection-string --name yousmadb \
-          --server yousmaserver \
-          --client ado.net \
-          --auth-type SqlPassword \
-          --output tsv | sed "s/<username>/sqladmin/;s/<password>/P@ssword123/")
-        echo "::add-mask::$conn"
-        echo "DB_CONN_STRING=$conn" >> $GITHUB_ENV
+        echo "conn_string=$(az deployment group show \
+          --resource-group $AZURE_RG \
+          --name $(date +%s) \
+          --query "properties.outputs.sqlConnStr.value" -o tsv)" >> $GITHUB_ENV
 
-    - name: Set Connection String in App Settings
+    - name: Set app settings with SQL connection string
       run: |
-        az webapp config connection-string set \
-          --resource-group yousma-rg \
+        az webapp config appsettings set \
+          --resource-group $AZURE_RG \
           --name yousma-web \
-          --settings DefaultConnection="${{ env.DB_CONN_STRING }}" \
-          --connection-string-type SQLAzure
+          --settings DB_CONNECTION="$conn_string"
 
-    - name: Deploy App to Azure Web App
+    - name: Deploy Web App code
       uses: azure/webapps-deploy@v2
       with:
         app-name: yousma-web
-        slot-name: Production
         package: .
