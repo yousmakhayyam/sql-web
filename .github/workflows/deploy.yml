@@ -1,4 +1,4 @@
-name: Deploy Azure App with SQL
+name: Deploy Azure web App with SQL
 
 on:
   push:
