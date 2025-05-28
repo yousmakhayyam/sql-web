@@ -6,21 +6,24 @@ require('dotenv').config();
 const app = express();
 const port = process.env.PORT || 3000;
 
-const config = {
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  server: process.env.DB_SERVER,
-  database: process.env.DB_DATABASE,
-  options: {
-    encrypt: true,
-    trustServerCertificate: true,
-  },
-  pool: {
-    max: 10,
-    min: 0,
-    idleTimeoutMillis: 30000,
-  },
-};
+// Build DB config based on environment variables
+const config = process.env.SQL_CONNECTION_STRING
+  ? { connectionString: process.env.SQL_CONNECTION_STRING }
+  : {
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      server: process.env.DB_SERVER,
+      database: process.env.DB_DATABASE,
+      options: {
+        encrypt: true,
+        trustServerCertificate: true,
+      },
+      pool: {
+        max: 10,
+        min: 0,
+        idleTimeoutMillis: 30000,
+      },
+    };
 
 let pool;
 
@@ -28,10 +31,11 @@ async function connectToDb() {
   try {
     pool = await sql.connect(config);
     console.log("✅ DB Connected");
-    // Event listener for errors after connection
+
+    // Listen for connection pool errors (optional)
     pool.on('error', err => {
       console.error('❌ MSSQL pool error', err);
-      // You could implement reconnect logic here if needed
+      // Optionally implement reconnect logic here
     });
   } catch (err) {
     console.error("❌ DB Connection Failed:", err);
@@ -42,8 +46,6 @@ async function connectToDb() {
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Serve static files from a 'public' folder (recommended)
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes
@@ -88,5 +90,5 @@ connectToDb()
   })
   .catch(err => {
     console.error("Failed to start server due to DB connection error:", err);
-    process.exit(1); // Stop process if DB connection fails
+    process.exit(1);
   });
