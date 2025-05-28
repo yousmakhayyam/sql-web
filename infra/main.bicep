@@ -56,9 +56,8 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
       appSettings: [
         {
           name: 'SQL_CONN_STRING'
-          value: format('Server=tcp:{0},{1};Initial Catalog={2};Persist Security Info=False;User ID={3};Password={4};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;',
-            '${sqlServer.name}.${environment().sqlEndpoint}',
-            '1433',
+          value: format('Server=tcp:{0}.database.windows.net,1433;Initial Catalog={1};Persist Security Info=False;User ID={2};Password={3};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;',
+            sqlServer.name,
             databaseName,
             sqlAdmin,
             sqlPassword
