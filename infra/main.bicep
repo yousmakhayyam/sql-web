@@ -79,5 +79,5 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
   }
 }
 
-// Output connection string WITHOUT password for reference/debugging (optional)
-output sqlConnStrWithoutPassword string = 'Server=tcp:${sqlServerName}.${environment().suffixes.sqlServerHostname},1433;Initial Catalog=${databaseName};Persist Security Info=False;User ID=${sqlAdmin};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
+// ❌ Removed this output to avoid secret exposure warning
+// output sqlConnStrWithoutPassword string = '...'
