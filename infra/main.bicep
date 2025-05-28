@@ -1,5 +1,5 @@
 param location string = resourceGroup().location
-param sqlServerName string
+param sqlServerName string = 'yousmaserver1-${uniqueString(resourceGroup().id)}'
 param sqlAdmin string
 @secure()
 param sqlPassword string
@@ -55,20 +55,8 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
       linuxFxVersion: 'NODE|18-lts'
       appSettings: [
         {
-          name: 'DB_USER'
-          value: sqlAdmin
-        }
-        {
-          name: 'DB_PASSWORD'
-          value: sqlPassword
-        }
-        {
-          name: 'DB_SERVER'
-          value: '${sqlServerName}.${environment().suffixes.sqlServerHostname}'
-        }
-        {
-          name: 'DB_DATABASE'
-          value: databaseName
+          name: 'SQL_CONN_STRING'
+          value: 'Server=tcp:${sqlServer.name}.database.windows.net,1433;Initial Catalog=${databaseName};Persist Security Info=False;User ID=${sqlAdmin};Password=${sqlPassword};MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;'
         }
         {
           name: 'WEBSITE_NODE_DEFAULT_VERSION'
@@ -78,6 +66,3 @@ resource webApp 'Microsoft.Web/sites@2022-03-01' = {
     }
   }
 }
-
-// ❌ Removed this output to avoid secret exposure warning
-// output sqlConnStrWithoutPassword string = '...'

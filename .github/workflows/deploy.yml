@@ -1,4 +1,4 @@
-name: Deploy Web App with SQL using Bicep
+name: Deploy Azure App with SQL
 
 on:
   push:
@@ -6,50 +6,42 @@ on:
       - main
 
 env:
-  AZURE_WEBAPP_NAME: "yousma-web"
-  AZURE_RESOURCE_GROUP: "yousma-rg"
-  BICEP_FILE_PATH: "./infra/main.bicep"
-  CONNECTION_STRING_NAME: "SQLCONNSTR_DB_CONNECTION"
+  RESOURCE_GROUP: yousma-rg
+  LOCATION: centralus
+  SQL_ADMIN: ${{ secrets.SQL_ADMIN }}
+  SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+  SQL_DB_NAME: yousmadb1
+  WEBAPP_NAME: azure-web-app
+  SQL_SERVER_NAME: yousmaserver1-${{ github.run_number }}
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Login to Azure
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # Stage 1: Deploy Infrastructure using Bicep
-      - name: Deploy Bicep Template
-        uses: azure/arm-deploy@v1
-        with:
-          resourceGroupName: ${{ env.AZURE_RESOURCE_GROUP }}
-          template: ${{ env.BICEP_FILE_PATH }}
-          parameters: ./infra/parameters.json
-          deploymentName: webapp-sql-deployment
+    - name: Deploy Infrastructure (Bicep)
+      uses: azure/arm-deploy@v1
+      with:
+        resourceGroupName: ${{ env.RESOURCE_GROUP }}
+        template: infra/main.bicep
+        parameters: >
+          location=${{ env.LOCATION }}
+          sqlServerName=${{ env.SQL_SERVER_NAME }}
+          sqlAdmin=${{ env.SQL_ADMIN }}
+          sqlPassword=${{ env.SQL_PASSWORD }}
+          databaseName=${{ env.SQL_DB_NAME }}
+          webAppName=${{ env.WEBAPP_NAME }}
 
-      # Stage 2: Get SQL Connection String from deployed resource
-      - name: Get SQL Connection String
-        id: get-connection
-        run: |
-          connectionString=$(az webapp config connection-string list \
-            --name $AZURE_WEBAPP_NAME \
-            --resource-group $AZURE_RESOURCE_GROUP \
-            --query "[?name=='${CONNECTION_STRING_NAME}'].value" \
-            -o tsv)
-
-          echo "::add-mask::$connectionString"
-          echo "CONNECTION_STRING=$connectionString" >> $GITHUB_ENV
-
-      # Stage 3: Deploy Application Code to Web App
-      - name: Deploy Node.js App to Azure Web App
-        uses: azure/webapps-deploy@v2
-        with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          slot-name: 'production'
-          package: .
+    - name: Deploy Node.js App to Azure Web App
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ env.WEBAPP_NAME }}
+        package: ./app
