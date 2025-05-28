@@ -1,4 +1,4 @@
-name: Deploy Azure web App with SQL
+name: Deploy Azure Web App with SQL
 
 on:
   push:
@@ -6,13 +6,12 @@ on:
       - main
 
 env:
-  RESOURCE_GROUP: yousma-rg
+  RESOURCE_GROUP: ${{ secrets.AZURE_RG_NAME }}
   LOCATION: centralus
-  SQL_ADMIN: ${{ secrets.SQL_ADMIN }}
-  SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
-  SQL_DB_NAME: yousmadb1
-  WEBAPP_NAME: azure-web-app
-  SQL_SERVER_NAME: yousmaserver1-${{ github.run_number }}
+  SQL_ADMIN: ${{ secrets.DB_USER }}
+  SQL_PASSWORD: ${{ secrets.DB_PASSWORD }}
+  SQL_DB_NAME: ${{ secrets.DB_DATABASE }}
+  WEBAPP_NAME: ${{ secrets.AZURE_WEBAPP_NAME }}
 
 jobs:
   deploy:
@@ -26,6 +25,9 @@ jobs:
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Set SQL Server name dynamically
+      run: echo "SQL_SERVER_NAME=${{ secrets.DB_SERVER }}" >> $GITHUB_ENV
 
     - name: Deploy Infrastructure (Bicep)
       uses: azure/arm-deploy@v1
