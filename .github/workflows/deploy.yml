@@ -1,0 +1,55 @@
+name: Deploy Web App with SQL using Bicep
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AZURE_WEBAPP_NAME: "yousma-web"
+  AZURE_RESOURCE_GROUP: "yousma-rg"
+  BICEP_FILE_PATH: "./infra/main.bicep"
+  CONNECTION_STRING_NAME: "SQLCONNSTR_DB_CONNECTION"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Login to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # Stage 1: Deploy Infrastructure using Bicep
+      - name: Deploy Bicep Template
+        uses: azure/arm-deploy@v1
+        with:
+          resourceGroupName: ${{ env.AZURE_RESOURCE_GROUP }}
+          template: ${{ env.BICEP_FILE_PATH }}
+          parameters: ./infra/parameters.json
+          deploymentName: webapp-sql-deployment
+
+      # Stage 2: Get SQL Connection String from deployed resource
+      - name: Get SQL Connection String
+        id: get-connection
+        run: |
+          connectionString=$(az webapp config connection-string list \
+            --name $AZURE_WEBAPP_NAME \
+            --resource-group $AZURE_RESOURCE_GROUP \
+            --query "[?name=='${CONNECTION_STRING_NAME}'].value" \
+            -o tsv)
+
+          echo "::add-mask::$connectionString"
+          echo "CONNECTION_STRING=$connectionString" >> $GITHUB_ENV
+
+      # Stage 3: Deploy Application Code to Web App
+      - name: Deploy Node.js App to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          slot-name: 'production'
+          package: .
