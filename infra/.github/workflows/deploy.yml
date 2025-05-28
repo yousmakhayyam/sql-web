@@ -6,10 +6,11 @@ on:
       - main
 
 env:
-  AZURE_WEBAPP_NAME: yousma-web
-  AZURE_RESOURCE_GROUP: yousma-rg
-  BICEP_FILE_PATH: ./infra/main.bicep
-  CONNECTION_STRING_NAME: SQLCONNSTR_DB_CONNECTION
+  AZURE_WEBAPP_NAME: "yousma-web"
+  AZURE_RESOURCE_GROUP: "yousma-rg"
+  BICEP_FILE_PATH: "./infra/main.bicep"
+  CONNECTION_STRING_NAME: "SQLCONNSTR_DB_CONNECTION"
+
 
 jobs:
   build-and-deploy:
