@@ -30,7 +30,7 @@ jobs:
           subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           resourceGroupName: ${{ env.AZURE_RESOURCE_GROUP }}
           template: ${{ env.BICEP_FILE_PATH }}
-          parameters: >
+          parameters: |
             sqlServerName=${{ secrets.SQL_SERVER_NAME }}
             sqlAdmin=${{ secrets.SQL_ADMIN }}
             sqlPassword=${{ secrets.SQL_PASSWORD }}
@@ -40,7 +40,7 @@ jobs:
       - name: Set Web App Connection String from Secret
         run: |
           az webapp config connection-string set \
-            --resource-group $AZURE_RESOURCE_GROUP \
-            --name $AZURE_WEBAPP_NAME \
-            --settings $CONNECTION_STRING_NAME="${{ secrets.DB_CONNECTION_STRING }}" \
+            --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+            --name ${{ env.AZURE_WEBAPP_NAME }} \
+            --settings ${{ env.CONNECTION_STRING_NAME }}="${{ secrets.DB_CONNECTION_STRING }}" \
             --connection-string-type SQLAzure
