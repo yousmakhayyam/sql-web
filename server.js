@@ -13,12 +13,13 @@ console.log('DB_USER:', process.env.DB_USER);
 console.log('DB_DATABASE:', process.env.DB_DATABASE);
 console.log('PORT:', process.env.PORT);
 
-// Database configuration - SIMPLIFIED version
+// ✅ Updated database configuration with connection string support
 const dbConfig = {
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   server: process.env.DB_SERVER,
   database: process.env.DB_DATABASE,
+  connectionString: process.env.SQL_CONNECTION_STRING,
   options: {
     encrypt: true,
     trustServerCertificate: false
@@ -27,17 +28,25 @@ const dbConfig = {
 
 let pool;
 
+// ✅ Updated initializeDatabase function
 async function initializeDatabase() {
   try {
     console.log('Attempting to connect with config:', {
       server: dbConfig.server,
       user: dbConfig.user,
-      database: dbConfig.database
+      database: dbConfig.database,
+      usingConnectionString: !!dbConfig.connectionString
     });
-    
-    pool = await sql.connect(dbConfig);
+
+    // Use connection string if provided
+    if (dbConfig.connectionString) {
+      pool = await sql.connect(dbConfig.connectionString);
+    } else {
+      pool = await sql.connect(dbConfig);
+    }
+
     console.log("✅ Database connected successfully!");
-    
+
     // Create table if not exists
     await pool.request().query(`
       IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='Messages' AND xtype='U')
@@ -48,10 +57,11 @@ async function initializeDatabase() {
         created_at DATETIME DEFAULT GETDATE()
       )
     `);
-    
+
     pool.on('error', err => {
       console.error('❌ Database connection error:', err);
     });
+
   } catch (err) {
     console.error("❌ Failed to connect to database:", err);
     throw err;
@@ -84,7 +94,7 @@ app.post('/submit', async (req, res) => {
   if (!name || !message) {
     return res.status(400).json({ error: "Name and message are required" });
   }
-  
+
   try {
     await pool.request()
       .input('name', sql.NVarChar, name)

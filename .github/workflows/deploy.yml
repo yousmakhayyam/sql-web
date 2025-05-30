@@ -18,18 +18,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
+    - name: 📥 Checkout code
       uses: actions/checkout@v3
 
-    - name: Azure Login
+    - name: 🔐 Azure Login
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: Set SQL Server name dynamically
+    - name: 🔧 Set SQL Server name dynamically
       run: echo "SQL_SERVER_NAME=${{ secrets.DB_SERVER }}" >> $GITHUB_ENV
 
-    - name: Deploy Infrastructure (Bicep)
+    - name: 🏗️ Deploy Infrastructure (Bicep)
       uses: azure/arm-deploy@v1
       with:
         resourceGroupName: ${{ env.RESOURCE_GROUP }}
@@ -42,8 +42,36 @@ jobs:
           databaseName=${{ env.SQL_DB_NAME }}
           webAppName=${{ env.WEBAPP_NAME }}
 
-    - name: Deploy Node.js App to Azure Web App
+    - name: 🚀 Deploy Node.js App to Azure Web App
       uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ env.WEBAPP_NAME }}
         package: .
+        app-settings: |
+          [
+            {
+              "name": "DB_SERVER",
+              "value": "${{ secrets.DB_SERVER }}",
+              "slotSetting": false
+            },
+            {
+              "name": "DB_USER",
+              "value": "${{ secrets.DB_USER }}",
+              "slotSetting": false
+            },
+            {
+              "name": "DB_PASSWORD",
+              "value": "${{ secrets.DB_PASSWORD }}",
+              "slotSetting": false
+            },
+            {
+              "name": "DB_DATABASE",
+              "value": "${{ secrets.DB_DATABASE }}",
+              "slotSetting": false
+            },
+            {
+              "name": "SQL_CONNECTION_STRING",
+              "value": "${{ secrets.SQL_CONNECTION_STRING }}",
+              "slotSetting": false
+            }
+          ]
