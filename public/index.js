@@ -21,7 +21,20 @@ document.addEventListener("DOMContentLoaded", () => {
       messagesList.innerHTML = "";
       messages.forEach((msg) => {
         const li = document.createElement("li");
-        li.innerHTML = `<strong>${escapeHtml(msg.name)}</strong>: ${escapeHtml(msg.message)} <br/><small>(${new Date(msg.timestamp).toLocaleString()})</small>`;
+        // Date formatting logic from your snippet
+        const date = msg.created_at ? new Date(msg.created_at) : new Date();
+        const formattedDate = date.toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+
+        li.innerHTML = `
+          <strong>${escapeHtml(msg.name)}</strong>: ${escapeHtml(msg.message)} 
+          <br/><small>(${formattedDate})</small>
+        `;
         li.classList.add("fade-in");
         messagesList.appendChild(li);
       });
