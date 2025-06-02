@@ -2,8 +2,7 @@ name: Deploy Azure Web App with SQL
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 env:
   RESOURCE_GROUP: ${{ secrets.AZURE_RG_NAME }}
@@ -18,60 +17,30 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: 📥 Checkout code
+    - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: 🔐 Azure Login
+    - name: Azure Login
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-    - name: 🔧 Set SQL Server name dynamically
+    - name: Create Resource Group
+      run: az group create --name ${{ env.RESOURCE_GROUP }} --location ${{ env.LOCATION }}
+
+    - name: Set SQL Server name dynamically
       run: echo "SQL_SERVER_NAME=${{ secrets.DB_SERVER }}" >> $GITHUB_ENV
 
-    - name: 🏗️ Deploy Infrastructure (Bicep)
+    - name: Deploy Infrastructure (Bicep)
       uses: azure/arm-deploy@v1
       with:
         resourceGroupName: ${{ env.RESOURCE_GROUP }}
         template: infra/main.bicep
-        parameters: >
-          location=${{ env.LOCATION }}
-          sqlServerName=${{ env.SQL_SERVER_NAME }}
-          sqlAdmin=${{ env.SQL_ADMIN }}
-          sqlPassword=${{ env.SQL_PASSWORD }}
-          databaseName=${{ env.SQL_DB_NAME }}
-          webAppName=${{ env.WEBAPP_NAME }}
+        parameters: "location=${{ env.LOCATION }} sqlServerName=${{ env.SQL_SERVER_NAME }} sqlAdmin=${{ env.SQL_ADMIN }} sqlPassword=${{ env.SQL_PASSWORD }} databaseName=${{ env.SQL_DB_NAME }} webAppName=${{ env.WEBAPP_NAME }}"
 
-    - name: 🚀 Deploy Node.js App to Azure Web App
+    - name: Deploy Node.js App to Azure Web App
       uses: azure/webapps-deploy@v2
       with:
         app-name: ${{ env.WEBAPP_NAME }}
         package: .
-        app-settings: |
-          [
-            {
-              "name": "DB_SERVER",
-              "value": "${{ secrets.DB_SERVER }}",
-              "slotSetting": false
-            },
-            {
-              "name": "DB_USER",
-              "value": "${{ secrets.DB_USER }}",
-              "slotSetting": false
-            },
-            {
-              "name": "DB_PASSWORD",
-              "value": "${{ secrets.DB_PASSWORD }}",
-              "slotSetting": false
-            },
-            {
-              "name": "DB_DATABASE",
-              "value": "${{ secrets.DB_DATABASE }}",
-              "slotSetting": false
-            },
-            {
-              "name": "SQL_CONNECTION_STRING",
-              "value": "${{ secrets.SQL_CONNECTION_STRING }}",
-              "slotSetting": false
-            }
-          ]
+        app-settings: "[{\"name\":\"DB_SERVER\",\"value\":\"${{ secrets.DB_SERVER }}\",\"slotSetting\":false},{\"name\":\"DB_USER\",\"value\":\"${{ secrets.DB_USER }}\",\"slotSetting\":false},{\"name\":\"DB_PASSWORD\",\"value\":\"${{ secrets.DB_PASSWORD }}\",\"slotSetting\":false},{\"name\":\"DB_DATABASE\",\"value\":\"${{ secrets.DB_DATABASE }}\",\"slotSetting\":false},{\"name\":\"SQL_CONNECTION_STRING\",\"value\":\"${{ secrets.SQL_CONNECTION_STRING }}\",\"slotSetting\":false}]"
